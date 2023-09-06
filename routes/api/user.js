@@ -68,6 +68,7 @@ router.post("/login", async (req, res) => {
         throw bErr;
       }
       if (bResult) {
+        // Generate JWT token
         const token = jwt.sign(
           {
             email: result[0].email,
@@ -78,17 +79,31 @@ router.post("/login", async (req, res) => {
             expiresIn: "7d",
           }
         );
+        // Set last login time
         await (
           await db
         ).query("UPDATE user SET last_login = now() WHERE user_id = ?", [
           result[0].user_id,
         ]);
+
+        // Get user role
+        userRole = await (
+          await db
+        ).query(
+          "SELECT user_type FROM user WHERE user_id = ?",
+          result[0].user_id
+        );
+
+        // Return succesful login
         return res.status(200).send({
           msg: "Logged in!",
-          token,
-          user: result[0],
+          token: token,
+          user_id: result[0].user_id,
+          user_role: userRole[0].user_type,
         });
       }
+
+      // Else return unsuccesful login
       return res.status(401).send({
         msg: "Username or password is incorrect!",
       });
