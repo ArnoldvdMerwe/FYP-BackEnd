@@ -117,6 +117,30 @@ router.post("/login", async (req, res) => {
   }
 });
 
+// Get list of first names and last names of homeowners of community
+router.get("/homeowners", async (req, res) => {
+  // Query SQL database
+  let dbQuery = await (
+    await db
+  ).query(
+    "select first_name, last_name, user_id from user where user_type like 'Homeowner'"
+  );
+
+  // Process into format for front end
+  // Array of objects with user id and whole names
+  newArray = [];
+  for (const obj of dbQuery) {
+    let wholeName = obj.first_name + " " + obj.last_name;
+    let newObj = {
+      name: wholeName,
+      userId: obj.user_id,
+    };
+    newArray.push(newObj);
+  }
+
+  res.send(newArray);
+});
+
 // Get details of a specific user
 router.get("/:id", async (req, res) => {
   // SQL query
