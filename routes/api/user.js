@@ -28,7 +28,7 @@ router.post("/sign-up", async (req, res) => {
         await (
           await db
         ).query(
-          "INSERT INTO user (user_id, password, registered, user_type, first_name, last_name, email, home_number, cellphone) VALUES (?, ?, now(), ?, ?, ?, ?, ?, ?)",
+          "INSERT INTO user (user_id, password, registered, user_type, first_name, last_name, email, cellphone) VALUES (?, ?, now(), ?, ?, ?, ?, ?)",
           [
             uuid.v4(),
             hash,
@@ -36,7 +36,6 @@ router.post("/sign-up", async (req, res) => {
             req.body.first_name,
             req.body.last_name,
             req.body.email,
-            req.body.home_number,
             req.body.cellphone,
           ]
         );
