@@ -17,6 +17,7 @@ app.use(cors());
 // Set up routes
 app.use("/api/user", require("./routes/api/user"));
 app.use("/api/home", require("./routes/api/home"));
+app.use("/api/measurement/", require("./routes/api/measurement"));
 
 // Run server
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`));

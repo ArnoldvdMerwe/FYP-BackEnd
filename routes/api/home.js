@@ -26,7 +26,7 @@ router.get("/homes", async (req, res) => {
     resArray.push(newObj);
     i++;
   }
-  res.send(resArray);
+  return res.send(resArray);
 });
 
 // Add new home
