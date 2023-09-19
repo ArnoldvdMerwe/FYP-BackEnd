@@ -27,6 +27,7 @@ router.get("/", async (req, res) => {
 
 // Update settings
 router.post("/edit", async (req, res) => {
+  // Store each property in correct place
   for (prop in req.body) {
     await (
       await db
@@ -35,6 +36,18 @@ router.post("/edit", async (req, res) => {
       `${prop}`,
     ]);
   }
+
+  // Calculate load limit for each home
+  let numHomesQuery = await (
+    await db
+  ).query("select count(home_number) as num from home");
+  let numHomes = Number(numHomesQuery[0]["num"]);
+  // Update load limit for each home
+  await (
+    await db
+  ).query("update general set value = ? where field = 'load_limit_home'", [
+    `${req.body.load_limit_community / numHomes}`,
+  ]);
 
   return res.status(201).send({
     msg: "Inverter settings edited!",
