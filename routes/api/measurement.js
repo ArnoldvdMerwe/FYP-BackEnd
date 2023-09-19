@@ -16,6 +16,21 @@ router.get("/power/:device", async (req, res) => {
   });
 });
 
+// Get the energy measurements of a device (a home or community)
+router.get("/total/:device", async (req, res) => {
+  query = await influxdb.query(
+    `select * from total where device = '${req.params.device}'`
+  );
+  const [labelsArray, dataArray] = formatForCharts(query);
+
+  let zeroedDataArray = formatEnergy(dataArray);
+
+  return res.status(200).send({
+    data: zeroedDataArray,
+    labels: labelsArray,
+  });
+});
+
 // Format query result in a managable format for the front end
 function formatForCharts(queryResult) {
   let labelsArray = [];
@@ -26,6 +41,18 @@ function formatForCharts(queryResult) {
     dataArray.push(obj.value);
   }
   return [labelsArray, dataArray];
+}
+
+// Format the measured energy so that it starts from 0
+function formatEnergy(arr) {
+  let firstNumber = arr[0];
+  let newArray = [];
+
+  for (item of arr) {
+    let temp = item - firstNumber;
+    newArray.push(temp);
+  }
+  return newArray;
 }
 
 module.exports = router;
