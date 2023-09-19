@@ -20,6 +20,7 @@ app.use("/api/home", require("./routes/api/home"));
 app.use("/api/measurement", require("./routes/api/measurement"));
 app.use("/api/rate", require("./routes/api/rate"));
 app.use("/api/inverter", require("./routes/api/inverter"));
+app.use("/api/dashboard", require("./routes/api/dashboard"));
 
 // Run server
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`));

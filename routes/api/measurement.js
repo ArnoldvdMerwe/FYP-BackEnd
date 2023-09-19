@@ -5,7 +5,7 @@ const influxdb = require("../../lib/influxdb");
 
 // Get the power measurements of a device (a home or community)
 router.get("/power/:device", async (req, res) => {
-  query = await influxdb.query(
+  let query = await influxdb.query(
     `select * from power where device = '${req.params.device}'`
   );
   const [labelsArray, dataArray] = formatForCharts(query);
@@ -18,7 +18,7 @@ router.get("/power/:device", async (req, res) => {
 
 // Get the energy measurements of a device (a home or community)
 router.get("/energy/:device", async (req, res) => {
-  query = await influxdb.query(
+  let query = await influxdb.query(
     `select * from total where device = '${req.params.device}'`
   );
   const [labelsArray, dataArray] = formatForCharts(query);

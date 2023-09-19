@@ -34,8 +34,8 @@ router.post("/add", async (req, res) => {
   await (
     await db
   ).query(
-    "INSERT INTO home (home_number, homeowner_id, account_balance) VALUES (?,?,?)",
-    [req.body.home_number, req.body.homeowner_id, 0]
+    "INSERT INTO home (home_number, homeowner_id, account_balance, receive_power_loadshedding) VALUES (?,?,?,?)",
+    [req.body.home_number, req.body.homeowner_id, 0, false]
   );
   setHomeLoadLimit();
   return res.status(201).send({
