@@ -37,6 +37,7 @@ router.post("/add", async (req, res) => {
     "INSERT INTO home (home_number, homeowner_id, account_balance) VALUES (?,?,?)",
     [req.body.home_number, req.body.homeowner_id, 0]
   );
+  setHomeLoadLimit();
   return res.status(201).send({
     msg: "Home added!",
   });
@@ -55,14 +56,37 @@ router.post("/edit", async (req, res) => {
   });
 });
 
-// Edit home
+// Delete home
 router.delete("/delete/:number", async (req, res) => {
   await (
     await db
   ).query("delete from home where home_number = ?", [req.params.number]);
+  setHomeLoadLimit();
   return res.status(201).send({
     msg: "Home deleted!",
   });
 });
+
+// Function to recalculate load limits if a new home is added or deleted
+async function setHomeLoadLimit() {
+  // Get number of homes
+  let numHomesQuery = await (
+    await db
+  ).query("select count(home_number) as num from home");
+  let numHomes = Number(numHomesQuery[0]["num"]);
+
+  // Get community load limit
+  let dbQuery = await (await db).query("select * from general");
+  let communityLoadLimit = parseFloat(
+    dbQuery.find((obj) => obj.field === "load_limit_community").value
+  );
+
+  // Update load limit for each home
+  await (
+    await db
+  ).query("update general set value = ? where field = 'load_limit_home'", [
+    `${communityLoadLimit / numHomes}`,
+  ]);
+}
 
 module.exports = router;
