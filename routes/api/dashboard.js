@@ -10,11 +10,15 @@ router.get("/homeowner/:id", async (req, res) => {
     await db
   ).query("select * from home where homeowner_id = ?", [req.params.id]);
   let home = homeQuery[0];
-  let receivePowerLoadshedding = 0;
-  if (home.receive_power_loadshedding === 0) {
-    receivePowerLoadshedding = "No";
-  } else {
-    receivePowerLoadshedding = "Yes";
+  let homeAccountBalance = "No home assigned";
+  let receivePowerLoadshedding = "No home assigned";
+  if (home !== undefined) {
+    homeAccountBalance = home.account_balance;
+    if (home.receive_power_loadshedding === 0) {
+      receivePowerLoadshedding = "No";
+    } else {
+      receivePowerLoadshedding = "Yes";
+    }
   }
 
   // Fetch general info (loadshedding, load limit)
@@ -45,14 +49,17 @@ router.get("/homeowner/:id", async (req, res) => {
   let rate = getRate(ratesQuery, loadshedding);
 
   // Fetch measurements
-  let powerQuery = await influxdb.query(
-    `select * from power where device = 'home-${home.home_number}' order by time desc limit 1`
-  );
-  let power = getPower(powerQuery);
+  let power = "No data";
+  if (home !== undefined) {
+    let powerQuery = await influxdb.query(
+      `select * from power where device = 'home-${home.home_number}' order by time desc limit 1`
+    );
+    let power = getPower(powerQuery);
+  }
 
   // Format response
   let resObj = {
-    account_balance: home.account_balance,
+    account_balance: homeAccountBalance,
     power: power,
     current_rate: rate,
     loadshedding: loadshedding,
