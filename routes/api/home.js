@@ -29,6 +29,19 @@ router.get("/homes", async (req, res) => {
   return res.send(resArray);
 });
 
+// Fetch details of home for a specific homeowner
+router.get("/home/:id", async (req, res) => {
+  // Query SQL database for home details
+  let dbQuery = await (
+    await db
+  ).query("select * from home where homeowner_id = ?", [req.params.id]);
+
+  let data = dbQuery[0];
+  data.receive_power_loadshedding = Boolean(data.receive_power_loadshedding);
+
+  return res.send(data);
+});
+
 // Add new home
 router.post("/add", async (req, res) => {
   await (
@@ -53,6 +66,34 @@ router.post("/edit", async (req, res) => {
   );
   return res.status(201).send({
     msg: "Home edited!",
+  });
+});
+
+// Edit settings for receiving power during loadshedding or not
+router.post("/edit_receive_power_loadshedding", async (req, res) => {
+  // Set value
+  await (
+    await db
+  ).query(
+    "update home set receive_power_loadshedding = ? where homeowner_id = ?",
+    [req.body.receive_power, req.body.id]
+  );
+  return res.status(201).send({
+    msg: "Receive power during loadshedding edited!",
+  });
+});
+
+// Add balance for a specific home
+router.post("/add_balance", async (req, res) => {
+  // Set value
+  await (
+    await db
+  ).query(
+    "update home set account_balance = account_balance + ? where homeowner_id = ?",
+    [req.body.add_balance, req.body.id]
+  );
+  return res.status(201).send({
+    msg: "Balance successfully increased!",
   });
 });
 
