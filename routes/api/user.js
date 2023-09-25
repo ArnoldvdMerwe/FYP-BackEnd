@@ -117,6 +117,36 @@ router.post("/login", async (req, res) => {
   }
 });
 
+// Get list of first names and last names of homeowners of community that do not have a home assigned to them
+router.get("/unassigned_homeowners", async (req, res) => {
+  // Query SQL database for all homeowners
+  let dbQuery = await (
+    await db
+  ).query(
+    "select first_name, last_name, user_id from user where user_type like 'Homeowner'"
+  );
+
+  // Get homes and assigned homeowners
+  let homeQuery = await (await db).query("select homeowner_id from home");
+
+  // Process into format for front end
+  // Array of objects with user id and whole names
+  // If already assigned homeowner, then remove
+  newArray = [];
+  for (const obj of dbQuery) {
+    let result = homeQuery.find((item) => item.homeowner_id == obj.user_id);
+    if (result === undefined) {
+      let wholeName = obj.first_name + " " + obj.last_name;
+      let newObj = {
+        name: wholeName,
+        userId: obj.user_id,
+      };
+      newArray.push(newObj);
+    }
+  }
+  res.send(newArray);
+});
+
 // Get list of first names and last names of homeowners of community
 router.get("/homeowners", async (req, res) => {
   // Query SQL database
