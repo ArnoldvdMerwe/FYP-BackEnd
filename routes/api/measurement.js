@@ -6,7 +6,7 @@ const influxdb = require("../../lib/influxdb");
 // Get the power measurements of a device (a home or community)
 router.get("/power/:device", async (req, res) => {
   let query = await influxdb.query(
-    `select * from power where device = '${req.params.device}'`
+    `select * from power where device = '${req.params.device}' order by time desc limit 45`
   );
   const [labelsArray, dataArray] = formatForCharts(query);
 
@@ -19,7 +19,7 @@ router.get("/power/:device", async (req, res) => {
 // Get the energy measurements of a device (a home or community)
 router.get("/energy/:device", async (req, res) => {
   let query = await influxdb.query(
-    `select * from total where device = '${req.params.device}'`
+    `select * from total where device = '${req.params.device}' order by time desc limit 45`
   );
   const [labelsArray, dataArray] = formatForCharts(query);
 
@@ -33,6 +33,7 @@ router.get("/energy/:device", async (req, res) => {
 
 // Format query result in a managable format for the front end
 function formatForCharts(queryResult) {
+  queryResult = queryResult.reverse();
   let labelsArray = [];
   let dataArray = [];
   for (obj of queryResult) {
