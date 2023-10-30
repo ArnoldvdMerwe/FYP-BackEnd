@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
-
 const db = require("../../lib/mariadb.js");
+const influxdb = require("../../lib/influxdb");
 
 // Fetch details of homes
 router.get("/homes", async (req, res) => {
@@ -18,9 +18,26 @@ router.get("/homes", async (req, res) => {
       await db
     ).query("select first_name, last_name from user where user_id = ?", [id]);
     let wholeName = userQuery[0].first_name + " " + userQuery[0].last_name;
+
+    // Get corresponding power
+    let power = "No data";
+    let powerQuery = await influxdb.query(
+      `select * from power where device = 'home-${dbQuery[i].home_number}' order by time desc limit 1`
+    );
+    power = getPower(powerQuery);
+
+    // Get correpsonding energy used over last 24 hours
+    let energy = "No data";
+    let energyQuery = await influxdb.query(
+      `select * from total where device = 'home-${dbQuery[i].home_number}' and time > now() - 1d order by time desc`
+    );
+    energy = getEnergy(energyQuery);
+
     newObj = {
       number: dbQuery[i].home_number,
       owner: wholeName,
+      power: power,
+      energy: energy,
       balance: dbQuery[i].account_balance,
     };
     resArray.push(newObj);
@@ -128,6 +145,36 @@ async function setHomeLoadLimit() {
   ).query("update general set value = ? where field = 'load_limit_home'", [
     `${communityLoadLimit / numHomes}`,
   ]);
+}
+
+// Get correct value for power
+function getPower(query) {
+  let power = "No data";
+  if (query[0] !== undefined) {
+    // Check if measurement is within last minute
+    const date = new Date(query[0].time);
+    const timeNow = Date.now();
+    const timeDifference = timeNow - date;
+    const timeDifferenceInMinutes = timeDifference / (1000 * 60);
+    if (timeDifferenceInMinutes < 1) {
+      power = query[0].value;
+    } else {
+      power = "Offline";
+    }
+  }
+  return power;
+}
+
+// Get total energy use
+function getEnergy(query) {
+  let energy = "No data";
+  if (query[0] !== undefined) {
+    arrayLength = query.length;
+    diff = query[0].value - query[arrayLength - 1].value;
+    // Convert to Wh
+    energy = diff;
+  }
+  return energy;
 }
 
 module.exports = router;
