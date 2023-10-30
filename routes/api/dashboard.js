@@ -54,7 +54,7 @@ router.get("/homeowner/:id", async (req, res) => {
     let powerQuery = await influxdb.query(
       `select * from power where device = 'home-${home.home_number}' order by time desc limit 1`
     );
-    let power = getPower(powerQuery);
+    power = getPower(powerQuery);
   }
 
   // Format response

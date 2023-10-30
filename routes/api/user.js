@@ -181,4 +181,21 @@ router.get("/:id", async (req, res) => {
   res.json(dbquery);
 });
 
+// Get home number of a specific homeowner
+router.get("/home_number/:id", async (req, res) => {
+  // SQL query
+  let dbquery = await (
+    await db
+  ).query("select home_number from home where homeowner_id like ?", [
+    req.params.id,
+  ]);
+  if (dbquery !== undefined && dbquery.length != 0) {
+    res.send(dbquery[0]);
+  } else {
+    return res.status(409).send({
+      msg: "No home assigned!",
+    });
+  }
+});
+
 module.exports = router;
